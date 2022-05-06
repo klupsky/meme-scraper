@@ -1,8 +1,8 @@
-import fs from 'fs'; // import to make new directory
-import https from 'https'; // import for downloader
-import fetch from 'node-fetch'; // import fetch
+import fs from 'node:fs'; // import package to make new directory
+import https from 'node:https'; // import package for downloading
+import fetch from 'node-fetch'; // import fetch package
 
-// Fetch html from url into string
+// Fetch html from url to a string
 const response = await fetch(
   'https://memegen-link-examples-upleveled.netlify.app/',
 );
@@ -10,18 +10,16 @@ const urlString = await response.text();
 
 // console.log(urlString);
 
-// Find images in string
+// Find parts with <img>+src inside string
 let i;
 const images = []; // creates an array
-const str = urlString;
-const rex = /<img[^>]+src="?([^"\s]+)"?\s*\/>/g;
-
+const str = urlString; // puts urlString into string
+const rex = /<img[^>]+src="?([^"\s]+)"?\s*\/>/g; // picks img files
 while ((i = rex.exec(str))) {
   images.push(i[1]);
 }
-// slice array to get first 10 images
-const imagesurl = images.slice(0, 10);
-//console.log(images2);
+// slice array from 0 to 10 to get first 10 images and put it into a const
+const imagesUrl = images.slice(0, 10);
 
 // create memes directory
 const path = './memes';
@@ -31,9 +29,9 @@ fs.access(path, (error) => {
   if (error) {
     // If current directory does not exist
     // then create it
-    fs.mkdir(path, (error) => {
-      if (error) {
-        console.log(error);
+    fs.mkdir(path, (errorOne) => {
+      if (errorOne) {
+        console.log(errorOne);
       } else {
         console.log('New Directory created successfully !!');
       }
@@ -43,24 +41,47 @@ fs.access(path, (error) => {
   }
 });
 
-//var link =
-// 'https://api.memegen.link/images/iw/does_testing/in_production.jpg?width=300';
+// download the images from the url inside imagesUrl array:
 
-for (let n = 0; n < imagesurl.length; n++) {
-  https
-    .get(imagesurl[n], (res) => {
-      const imagePath = `./memes/0${n + 1}.jpg`;
-      const stream = fs.createWriteStream(imagePath);
+// loops through the array
+for (let n = 0; n < imagesUrl.length; n++) {
+  if (n < 9) {
+    // as long as image number is below 9
+    https
+      .get(imagesUrl[n], (res) => {
+        // download file to memes-directory, name it as .jpg with increasing number and add 0 to it
+        const imagePath = `./memes/0${n + 1}.jpg`;
+        const stream = fs.createWriteStream(imagePath);
 
-      res.pipe(stream);
+        res.pipe(stream);
 
-      stream.on('finish', () => {
-        stream.close();
-        console.log('Image downloaded');
+        stream.on('finish', () => {
+          stream.close();
+          console.log('Image downloaded');
+        });
+      })
+      .on('error', (err) => {
+        // handle error
+        console.log(err);
       });
-    })
-    .on('error', (err) => {
-      // handle error
-      console.log(err);
-    });
+  } else {
+    // once the number is higher than 10
+    https
+      .get(imagesUrl[n], (res) => {
+        // download file to memes-directory, name it as .jpg with increasing number without the 0
+        const imagePath = `./memes/${n + 1}.jpg`;
+        const stream = fs.createWriteStream(imagePath);
+
+        res.pipe(stream);
+
+        stream.on('finish', () => {
+          stream.close();
+          console.log('Image downloaded');
+        });
+      })
+      .on('error', (err) => {
+        // handle error
+        console.log(err);
+      });
+  }
 }

@@ -20,6 +20,7 @@ while ((i = rex.exec(str))) {
 }
 // slice array from 0 to 10 to get first 10 images and put it into a const
 const imagesUrl = images.slice(0, 10);
+// console.log(imagesUrl);
 
 // create memes directory
 const path = './memes';
